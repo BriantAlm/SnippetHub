@@ -1,0 +1,5 @@
+[build]
+commands = [
+    "python manage.py collectstatic --noinput",
+    "python3 create_superuser.py"  # Asegúrate de que la ruta sea correcta
+]

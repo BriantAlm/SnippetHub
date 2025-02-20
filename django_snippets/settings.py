@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config("SECRET_KEY", default="Secret Key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = ["django-snippets-crud.herokuapp.com/"]
 
@@ -136,7 +136,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_PORT = config("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True)
 
-CELERY_BROKER_URL = config("REDIS_URL", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = config("REDIS_URL", default="redis-17020.c323.us-east-1-2.ec2.redns.redis-cloud.com:17020")
 CELERY_RESULT_BACKEND = config("REDIS_URL", default="")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
