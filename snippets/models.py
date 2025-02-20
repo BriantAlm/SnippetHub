@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.db import models
@@ -25,4 +23,3 @@ class Snippet(models.Model):
 
     def get_absolute_url(self):
         return reverse("snippet", kwargs={"id": self.id})
-    
