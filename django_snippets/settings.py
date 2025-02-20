@@ -27,7 +27,8 @@ SECRET_KEY = config("SECRET_KEY", default="Secret Key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True #config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["django-snippets-crud.herokuapp.com/"]
+ALLOWED_HOSTS = ["https://web-production-e419.up.railway.app/"]
+CSRF_TRUSTED_ORIGINS = ["https://web-production-e419.up.railway.app/"]
 
 # Application definition
 
