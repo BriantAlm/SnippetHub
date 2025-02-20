@@ -1,47 +1,91 @@
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, logout
-from django.shortcuts import render, redirect
 from django.views import View
+from django.urls import reverse
+from django.contrib.auth import login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
+from django.contrib.auth.forms import AuthenticationForm
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
+from django.shortcuts import redirect, render, redirect
+
+from .models import Snippet
+from .forms import SnippetForm
 
 
-class SnippetAdd(View):None
-#    TODO: Implement this class to handle snippet creation, only for authenticated users.
+class SnippetAdd(LoginRequiredMixin, CreateView):
+    model = Snippet
+    form_class = SnippetForm
+    template_name = "snippets/snippet_add.html"
+    extra_context = {"action": "Cargar"}
 
-class SnippetEdit(View): None
-#    TODO: Implement this class to handle snippet editing. Allow editing only for the owner.
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
-class SnippetDelete(View): None
-#    TODO: Implement this class to handle snippet deletion. Allow deletion only for the owner.
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+class SnippetEdit(LoginRequiredMixin, UpdateView):
+    model = Snippet
+    form_class = SnippetForm
+    template_name = "snippets/snippet_add.html"
+    extra_context = {"action": "Editar"}
+    pk_url_kwarg = "id"
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
 
-class SnippetDetails(View):
-    def get(self, request, *args, **kwargs):
-        snippet_id = self.kwargs["id"]
-        # TODO: Implement logic to get snippet by ID
-        # snippet = Snippet.objects.get(id=snippet_id)
-        # Add conditions for private snippets
-        return render(
-            request, "snippets/snippet.html", {"snippet": snippet}
-        )  # Placeholder
+class SnippetDelete(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Snippet
+    template_name = "snippets/snippet_delete.html"
+    pk_url_kwarg = "id"
+    
+    def test_func(self):
+        return self.request.user == self.get_object().user
+
+    def get_success_url(self):
+        snippet = self.get_object()
+        return reverse("user_snippets", args=[snippet.user.username])
+    
+    def delete(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        breakpoint()
+        username = snippet.user.username
+        response = super().delete(request, *args, **kwargs)
+        return redirect("user_snippets", username=username)
+
+
+class SnippetDetails(DetailView):
+    model = Snippet
+    template_name = "snippets/snippet.html"
+    context_object_name = "snippet"
+    pk_url_kwarg = 'id'
 
 
 class UserSnippets(View):
+    model = Snippet
+    queryset = Snippet.objects.all()
+
     def get(self, request, *args, **kwargs):
+        user = request.user
         username = self.kwargs["username"]
-        # TODO: Fetch user snippets based on username and public/private logic
-        # snippets = Snippet.objects.filter(...)
+        snippets = self.queryset.filter(user__username=username, public=True)
+        if user.is_authenticated and user.username == username:
+            snippets = self.queryset.filter(user__username=username)
         return render(
             request,
             "snippets/user_snippets.html",
             {"snippetUsername": username, "snippets": snippets},
-        )  # Placeholder
+        )
 
 
 class SnippetsByLanguage(View):
+    model = Snippet
+
     def get(self, request, *args, **kwargs):
+        user = request.user
         language = self.kwargs["language"]
-        # TODO: Fetch snippets based on language
-        return render(request, "index.html", {"snippets": []})  # Placeholder
+        snippets = self.model.objects.filter(language__slug=language, public=True)
+        return render(request, "index.html", {"snippets": snippets})
 
 
 class Login(View):
@@ -57,6 +101,7 @@ class Login(View):
             return redirect('index')
         return render(request, 'login.html', {'form': form})
 
+
 class Logout(View):
     def get(self, request):
         logout(request)
@@ -65,5 +110,5 @@ class Logout(View):
 
 class Index(View):
     def get(self, request, *args, **kwargs):
-        # TODO: Fetch and display all public snippets
-        return render(request, "index.html", {"snippets": []})  # Placeholder
+        snippets = Snippet.objects.filter(public=True)
+        return render(request, "index.html", {"snippets": snippets})
